@@ -1,0 +1,17 @@
+install git
+bash: git config --global user.email "you@example.com"
+go to desired directory in command prompt
+
+
+git clone https://github.com/MuthathalChinniah/FairShare.git
+
+place the file you want to add inside this directory
+in the command prompt:
+
+
+git add "filename.py"
+git commit -m "your message"
+git push -u origin main
+
+before working on any common file:
+git pull origin main
