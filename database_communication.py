@@ -2,6 +2,7 @@
 # https://www.mongodb.com/try/download/community
 import pymongo
 from bson.objectid import ObjectId
+from numbers import Number
 
 
 
@@ -13,7 +14,7 @@ user_login_details = mydb["UserDetails"] #Each doc is of format: {"Name": name, 
 friends = mydb ["Friends"] #Each doc is of format: {"user_id": user_id, "Friend": str_friend's_user_id}
 group_names = mydb["GroupNames"] #Each doc is of format: {"group_name": group_name, "_id": str}
 group_members = mydb["GroupMem"] #Each doc is of format: {"group_id": str, "user_id": str}
-expenses = mydb["Expenses"] #Each doc is of format: {"group_id": group_id, "amount": float, "description": Description_str}
+group_expenses = mydb["Expenses"] #Each doc is of format: {"group_id": group_id, "amount": float, "description": Description_str}
 expenses_split = mydb ["ExpensesSplit"] #Each doc is of format: {"user_id": str, "split": float (amount split for this person)}
 payments = mydb ["Payments"]#Each doc is of format: {"from": user id, "to": user_id, "amount": float (amount split if group payment or full amount if settle up)}
 
@@ -183,17 +184,52 @@ def add_friend_to_group (group_id, friend_id):
         return False, "Friend Invalid"
 
 
-
+def add_group_expense_split (amount, user_list, paid_by):
+    """
+    Internal function to add expenses and payment split for each person in the list of users provided
+    Default split is: Split Equally
+    Expense: {"user_id": str, "split": float (amount split for this person)}
+    Payment: {"from": user id, "to": user_id, "amount": float (amount split if group payment or full amount if settle up)}
+    :param amount: float
+    :param user_list: list of str: list of user_ids
+    :return: None
+    """
+    amount_share = amount/len(user_list)
+    for user_id in user_list:
+        if user_id != paid_by:
+            payments.insert_one({"from": paid_by, "to": user_id, "amount": amount_share})
+        expenses_split.insert_one({"user_id": user_id, "split": amount_share})
 
 def add_group_expense (paid_by, group_id, amount, description):
     """
-    Add expense to group: {"user_id": user_id, "group_id": group_id, "amount": float, "description": Description_str}
+    Add expense to group: {"group_id": group_id, "amount": float, "description": Description_str}
     :param paid_by: str (user id)
     :param group_id: str
     :param amount: float
     :param description: str: comment about the expense
-    :return: message:
+    :return: bool: status, message: Success/ Error message
     """
+    if user_exists(paid_by):
+        if group_exists(group_id):
+            if isinstance(amount, Number):
+                amount = float(amount)
+                if amount > 0:
+                    this_expense = {"group_id": group_id, "amount": amount, "description": description}
+                    group_expenses.insert_one(this_expense)
+                    all_members = (get_group_members(group_id)).values ()
+                    if len(all_members)>0:
+                        add_group_expense_split (amount, all_members, paid_by)
+                        return True, "Success"
+                    else:
+                        return False, "Add at least one member to the group before adding expense"
+                else:
+                    return False, "Enter a value greater than 0 for amount"
+            else:
+                return False, "Enter a numeric value for amount"
+        else:
+            return False, "Invalid Group"
+    else:
+        return False, "Enter a valid user for Paid By"
 
 
 
@@ -317,6 +353,22 @@ def my_tester():
 
     print(add_friend_to_group("67589aea0b4491008ed0ce28", "6740be446182fd93bf472312"))
 
+    #Adding a group expense
+    #print(add_group_expense ("67587f6ffd9b042fc40967b4", "67589bc4ba6cf3fe9ac35863", 30, "Groceries"))
+    print("Group Expenses <><><><><><><><><><><><><><><><><><>")
+    cursor = group_expenses.find({})
+    for doc in cursor:
+        print(doc)
+
+    print("Expenses Split <><><><><><><><><><><><><><><><><><>")
+    cursor = expenses_split.find({})
+    for doc in cursor:
+        print(doc)
+
+    print("Payments split <><><><><><><><><><><><><><><><><><>")
+    cursor = payments.find({})
+    for doc in cursor:
+        print(doc)
 if __name__ == "__main__":
 
     my_tester()
