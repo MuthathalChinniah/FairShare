@@ -13,6 +13,9 @@ user_login_details = mydb["UserDetails"] #Each doc is of format: {"Name": name, 
 friends = mydb ["Friends"] #Each doc is of format: {"user_id": user_id, "Friend": str_friend's_user_id}
 group_names = mydb["GroupNames"] #Each doc is of format: {"group_name": group_name, "_id": str}
 group_members = mydb["GroupMem"] #Each doc is of format: {"group_id": str, "user_id": str}
+expenses = mydb["Expenses"] #Each doc is of format: {"group_id": group_id, "amount": float, "description": Description_str}
+expenses_split = mydb ["ExpensesSplit"] #Each doc is of format: {"user_id": str, "split": float (amount split for this person)}
+payments = mydb ["Payments"]#Each doc is of format: {"from": user id, "to": user_id, "amount": float (amount split if group payment or full amount if settle up)}
 
 
 
@@ -95,7 +98,7 @@ def add_friend (user_id, mobile_number_of_friend):
     if bool(doc):
         if user_exists(user_id):
             if doc['Name'] not in get_friends(user_id):
-                friend = {"user_id": user_id, "Friend": doc['_id']}
+                friend = {"user_id": user_id, "Friend": str(doc['_id'])}
                 friends.insert_one(friend)
                 return True, "Success"
             else:
@@ -148,26 +151,52 @@ def create_group (user_id, group_name, friends_list):
         return False, "Invalid User"
 
 
-def add_group_expense (user_id, group_id, amount, comment):
+def group_exists (group_id):
     """
-    Add expense to group
-    :param user_id: str
+    To check if group id given is a valid one-Internal usage for backend
     :param group_id: str
-    :param amount: float
-    :param comment: str
-    :return: message
+    :return: bool: valid/invalid
     """
-    pass  # SA
+    query = {"_id": ObjectId(group_id)}
+    doc = group_names.find_one(query)
+    return bool(doc)
 
-def add_friend_to_group (user_id, group_id, friend_id):
+
+def add_friend_to_group (group_id, friend_id):
     """
     Add friend to an existing group
-    :param user_id: str
     :param group_id: str
     :param friend_id: str
-    :return: message: str
+    :return: Bool: status, message: str
     """
-    pass #SA
+    if user_exists(friend_id):
+        if group_exists(group_id):
+            members = get_group_members(group_id)
+            if friend_id not in members.values():
+                group_members.insert_one({"group_id": group_id, "user_id": friend_id})
+                return True, "Success"
+            else:
+                return False, "This person is already a member of this group"
+        else:
+            return False, "Invalid Group"
+    else:
+        return False, "Friend Invalid"
+
+
+
+
+def add_group_expense (paid_by, group_id, amount, description):
+    """
+    Add expense to group: {"user_id": user_id, "group_id": group_id, "amount": float, "description": Description_str}
+    :param paid_by: str (user id)
+    :param group_id: str
+    :param amount: float
+    :param description: str: comment about the expense
+    :return: message:
+    """
+
+
+
 
 def settle_up (user_id, group_id, paid_by, paid_to, amount):
     """
@@ -211,21 +240,33 @@ def all_groups (user_id):
 
 
 
-def get_friends(user_id, group_id=None):
+def get_friends(user_id):
     """
-    Get all friends names and ids of current user (all friends if group id is None, only the group members if group id is not None)
+    Get all friends names and ids of current user
     :param: user_id: str
-    :param: group_id: str
     :return: dictionary {friend_name_1: friend_id_1, friend_name_2: friend_id_2, ....}
     """
-    query = {"user_id": user_id}
-    if group_id is None:
-        cursor = friends.find(query)
-        friends_dict = {}
-        for doc in cursor:
-            user_details = user_login_details.find_one({"_id": ObjectId(doc['Friend'])})
-            friends_dict [user_details['Name']] = user_details["_id"]
-        return friends_dict
+    cursor = friends.find({"user_id": user_id})
+    friends_dict = {}
+    for doc in cursor:
+        user_details = user_login_details.find_one({"_id": ObjectId(doc['Friend'])})
+        friends_dict [user_details['Name']] = str(user_details["_id"])
+    return friends_dict
+
+
+
+def get_group_members (group_id):
+    """
+    Get all members of given group and their corresponding id
+    :param group_id: str
+    :return: dictionary {member_name_1: member_id_1, member_name_2: member_id_2, ....}
+    """
+    cursor = group_members.find({"group_id": group_id})
+    friends_dict = {}
+    for doc in cursor:
+        user_details = user_login_details.find_one({"_id": ObjectId(doc['user_id'])})
+        friends_dict[user_details['Name']] = str(user_details["_id"])
+    return friends_dict
 
 
 
@@ -242,8 +283,12 @@ def get_friends(user_id, group_id=None):
 def my_tester():
     """Testing function- only for internal usage- testing"""
 
+    # testing Create user, login
+    print(create_user_db("Kirti Mohan", "1234867891", "P@skw0rd1"))
+    print(login("1234867891", "P@skw0rd1"))
+
     #Creating a user
-    create_user_db("Jana","0154982398", "Pass@123", None)
+    print(create_user_db("Jana","0154982398", "Pass@123", None))
 
     #Finding a doc with ID
     cursor = user_login_details.find({})
@@ -263,9 +308,6 @@ def my_tester():
     for doc in cursor:
         print(doc)
 
-    cursor = group_members.find({})
-    for doc in cursor:
-        print(doc)
 
     #Getting all groups of one user
     print("Groups of Janu: ", all_groups("67587f0aacf79394c68b9e2d"))
@@ -273,10 +315,9 @@ def my_tester():
     print("Groups of Muthu: ", all_groups("6750cb6f89b3bae87530d7d7"))
     print("Groups of M: ", all_groups("67422a0e996fe564d452c286"))
 
+    print(add_friend_to_group("67589aea0b4491008ed0ce28", "6740be446182fd93bf472312"))
 
 if __name__ == "__main__":
-    #testing Create user, login
-    #create_user_db("Kirti Mohan", "1234867891", "P@skw0rd1")
-    #login("1234867891", "P@skw0rd1")
+
     my_tester()
 
