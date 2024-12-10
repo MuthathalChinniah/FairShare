@@ -1,26 +1,24 @@
-
 # https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-windows/
 # https://www.mongodb.com/try/download/community
 import pymongo
-import re
+from bson.objectid import ObjectId
+
 
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+#myclient.drop_database("FairShare_DB") #To drop the whole database and start afresh
 mydb = myclient["FairShare_DB"] #Creating Database with the name FairShare_DB
-user_login_details = mydb["UserDetails"] #Creating a Collection for user login details
+
+user_login_details = mydb["UserDetails"] #Each doc is of format: {"Name": name, "Mobile": mobile, "Password": password, "Email": email}
+friends = mydb ["Friends"] #Each doc is of format: {"user_id": user_id, "Friend": str_friend's_user_id}
+group_names = mydb["GroupNames"] #Each doc is of format: {"group_name": group_name, "_id": str}
+group_members = mydb["GroupMem"] #Each doc is of format: {"group_id": str, "user_id": str}
 
 
-def validate_mobile (mobile):
-    """
-    Validates a mobile number: only numbers, 10 digits
-    :param mobile: str mobile number to validate
-    :return: bool: true/ false: valid/ invalid
-    """
-    pattern = r"\d{10}$"
-    return bool(re.match(pattern, mobile))
 
 def mobile_exists(mobile):
     """
+    Created by Muthathal
     To check if a mobile number exists already
     :param mobile: str mobile number
     :return: bool: True: already exists, False: does npt exist
@@ -29,29 +27,6 @@ def mobile_exists(mobile):
     return bool(user_login_details.find_one(query))
 
 
-
-def validate_email(email):
-    """
-    Validates an email address
-    Rules:  any alpha num or some special char, followed by @, followed by alpha num, followed by . , followed by at least two letter alpha
-    :param: email (str): The email address to validate.
-    :return: bool: True if valid, False otherwise.
-    """
-    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    return (re.match(email_pattern, email))
-
-def validate_password(password):
-    """
-        1. At least one capital letter
-        2. At least one small letter
-        3. At least one number
-        4. At least 8 characters total
-    :param password: str
-    :return: bool: true: valid, false: invalid
-    """
-    password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}$"
-    return bool(re.match(password_pattern, password))
-
 def create_user_db (name, mobile, password, email=None):
     """
     Create user in UserLogin connection
@@ -59,55 +34,249 @@ def create_user_db (name, mobile, password, email=None):
     :param mobile: str: mobile of user
     :param password: str
     :param email: str
-    :return: bool: created successfully or not
+    :return: bool: created successfully or not, str: staus/ reason
     """
-    if not validate_mobile(mobile):
-        print("Mobile number invalid")
-        return False
     if mobile_exists(mobile):
-        print("This Mobile number number already has an account")
-        return False
-    if len(name) < 1:
-        print("Enter a valid Name")
-        return False
-    if email is not None:
-        if not validate_email(email):
-            print("Invalid email id")
-            return False
-    if not validate_password(password):
-        print("""Invalid Password: Password should contain:
-        1. At least one capital letter
-        2. At least one small letter
-        3. At least one number
-        4. At least 8 characters total""")
-        return False
+        message = "This Mobile number number already has an account"
+        return False, message
+
+
     this_user = {"Name": name, "Mobile": mobile, "Password": password, "Email": email}
     user_login_details.insert_one(this_user)
-    print("Created")
-    return True
+    message = "Created"
+    return True, message
 
 
 def login(mobile, password):
     """
+    Created by Muthathal
     To login to an existing user acc
     :param mobile: str: mobile number
     :param password: str
-    :return: bool: logged in successfully or not
+    :return: bool: logged in successfully or not, str: status/ reason
     """
     query = {"Mobile": mobile}
     doc = user_login_details.find_one(query)
     if bool(doc):
         if doc['Password'] == password:
-            print("Logged in")
-            return True
+            message = str(doc['_id'])
+            return True, message
         else:
-            print("Invalid Password")
-            return False
+            message = "Invalid Password"
+            return False, message
     else:
-        print("Invalid mobile number")
-        return False
+        message = "No account exists with this mobile number"
+        return False, message
 
 
-create_user_db("Kirti Mohan", "1234867891", "P@skw0rd1")
-login("1234867891", "P@skw0rd1")
+
+
+
+
+
+def get_acc_details (user_id):
+    """
+    To get details of the current user account
+    :param: user_id
+    :return: dict: Dictionary containing all the account details
+    """
+    pass #SR
+
+def add_friend (user_id, mobile_number_of_friend):
+    """
+    To add a friend to my friends list: Requires: Valid Mobile number, valid user_id, Not already a friend.
+    Else returns False with the appropriate error message
+    :param user_id: str
+    :param mobile_number_of_friend: str
+    :return: bool-status, str-message
+    """
+    query = {"Mobile": mobile_number_of_friend}
+    doc = user_login_details.find_one(query)
+    if bool(doc):
+        if user_exists(user_id):
+            if doc['Name'] not in get_friends(user_id):
+                friend = {"user_id": user_id, "Friend": doc['_id']}
+                friends.insert_one(friend)
+                return True, "Success"
+            else:
+                return False, "This Person is already your friend"
+        else:
+            return False, "Invalid User"
+    else:
+        return False, "No account exists with this mobile number"
+
+
+def user_exists (user_id):
+    """
+    To check if user id given is a valid one-Internal usage for backend
+    :param user_id: str
+    :return: bool: valid/invalid
+    """
+    query = {"_id": ObjectId(user_id)}
+    doc = user_login_details.find_one(query)
+    return bool(doc)
+
+def get_activity ():
+    pass #SR
+    #Can be implemented later if time permits
+
+
+
+
+def create_group (user_id, group_name, friends_list):
+    """
+    Create a group: requirements: All friends' user id in friends_list must be valid, current user id must be valid, group name must have at least 1 character
+    :param user_id: str
+    :param group_name: str
+    :param friends_list: list of str of friends' ids
+    :return: bool: created/not created,   message: str: If created: group_id, else: error message
+    """
+    if user_exists(user_id):
+        if len(group_name) > 0:
+            group_id = group_names.insert_one({"group_name": group_name})
+            group_id = str(group_id.inserted_id)
+            for friend in friends_list:
+                if user_exists(friend):
+                    group_members.insert_one({"group_id": group_id, "user_id": friend})
+                else:
+                    return False, "Invalid friend"
+            group_members.insert_one({"group_id": group_id, "user_id": user_id})
+            return True, "Created group"
+        else:
+            return False, "Invalid group name"
+    else:
+        return False, "Invalid User"
+
+
+def add_group_expense (user_id, group_id, amount, comment):
+    """
+    Add expense to group
+    :param user_id: str
+    :param group_id: str
+    :param amount: float
+    :param comment: str
+    :return: message
+    """
+    pass  # SA
+
+def add_friend_to_group (user_id, group_id, friend_id):
+    """
+    Add friend to an existing group
+    :param user_id: str
+    :param group_id: str
+    :param friend_id: str
+    :return: message: str
+    """
+    pass #SA
+
+def settle_up (user_id, group_id, paid_by, paid_to, amount):
+    """
+    To settle up any balances in a group
+    :param user_id: str
+    :param group_id: str
+    :param paid_by: str: id of person paying
+    :param paid_to: str: id of person receiving
+    :param amount: float
+    :return: message: str
+    """
+    pass  # SA
+
+def get_balances (user_id, group_id):
+    """
+    Get balances of the current group
+    :param user_id: str
+    :param group_id: str
+    :return: dict: dictionary containing all the balance details
+    """
+    pass  # SA
+
+def all_groups (user_id):
+    """
+    Return all groups of a given user (if given user id is valid)
+    :param user_id: str
+    :return: bool: valid or invalid user, dictionary of format: {group_name1: group1_id, group_name2: group2_id, ...}
+    """
+    if user_exists(user_id):
+        query = {"user_id": user_id}
+        cursor = group_members.find(query)
+        group_dict = {}
+        for group in cursor:
+            g_id = group['group_id']
+            group_name = group_names.find_one({"_id": ObjectId(g_id)})
+            group_name = group_name["group_name"]
+            group_dict [group_name] = g_id
+        return True, group_dict
+    else:
+        return False, {}
+
+
+
+def get_friends(user_id, group_id=None):
+    """
+    Get all friends names and ids of current user (all friends if group id is None, only the group members if group id is not None)
+    :param: user_id: str
+    :param: group_id: str
+    :return: dictionary {friend_name_1: friend_id_1, friend_name_2: friend_id_2, ....}
+    """
+    query = {"user_id": user_id}
+    if group_id is None:
+        cursor = friends.find(query)
+        friends_dict = {}
+        for doc in cursor:
+            user_details = user_login_details.find_one({"_id": ObjectId(doc['Friend'])})
+            friends_dict [user_details['Name']] = user_details["_id"]
+        return friends_dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+def my_tester():
+    """Testing function- only for internal usage- testing"""
+
+    #Creating a user
+    create_user_db("Jana","0154982398", "Pass@123", None)
+
+    #Finding a doc with ID
+    cursor = user_login_details.find({})
+    for doc in cursor:
+        print(doc)
+    doc = user_login_details.find_one({"_id": ObjectId(str("6750cb6f89b3bae87530d7d7"))})
+    print(doc['Name'], "<><><><>")
+
+
+    #Adding friend for a user
+    print (add_friend("6750cb6f89b3bae87530d7d7", "6666666660"))
+
+
+    #Creating group
+    #print (create_group("6750cb6f89b3bae87530d7d7", "MyGroup2", ["67587f0aacf79394c68b9e2d", "67587f6ffd9b042fc40967b4"]))
+    cursor = group_names.find({})
+    for doc in cursor:
+        print(doc)
+
+    cursor = group_members.find({})
+    for doc in cursor:
+        print(doc)
+
+    #Getting all groups of one user
+    print("Groups of Janu: ", all_groups("67587f0aacf79394c68b9e2d"))
+    print("Groups of Jana: ", all_groups("67587f6ffd9b042fc40967b4"))
+    print("Groups of Muthu: ", all_groups("6750cb6f89b3bae87530d7d7"))
+    print("Groups of M: ", all_groups("67422a0e996fe564d452c286"))
+
+
+if __name__ == "__main__":
+    #testing Create user, login
+    #create_user_db("Kirti Mohan", "1234867891", "P@skw0rd1")
+    #login("1234867891", "P@skw0rd1")
+    my_tester()
 
