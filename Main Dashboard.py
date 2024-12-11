@@ -123,6 +123,70 @@ class FairShare:
                 self.update_group_friends_listbox()
         else:
             messagebox.showwarning("Input Error", "Friend's name cannot be empty!")
+   
+    # GROUPS TAB
+    def build_groups_tab(self):
+        Label(
+            self.groups_tab, text="Group Name:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
+        ).pack(pady=5, padx=10, anchor="w")
+
+        self.group_name_entry = Entry(self.groups_tab, font=("Arial", 12))
+        self.group_name_entry.pack(pady=5, padx=10)
+
+        Label(
+            self.groups_tab, text="Select Friends:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
+        ).pack(pady=5, padx=10, anchor="w")
+
+        self.group_friends_listbox = Listbox(
+            self.groups_tab, width=50, height=10, font=("Arial", 10), selectmode=MULTIPLE, bg="#ECF0F1", fg="#2C3E50"
+        )
+        self.group_friends_listbox.pack(pady=5, padx=10)
+        self.update_group_friends_listbox()
+
+        create_group_button = Button(
+            self.groups_tab,
+            text="Create Group",
+            command=self.create_group,
+            bg="#8E44AD",
+            fg="white",
+            font=("Arial", 10, "bold"),
+            activebackground="#9B59B6",
+        )
+        create_group_button.pack(pady=10)
+
+        Label(
+            self.groups_tab, text="Existing Groups:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
+        ).pack(pady=5, padx=10, anchor="w")
+
+        self.groups_listbox = Listbox(
+            self.groups_tab, width=50, height=10, font=("Arial", 10), bg="#ECF0F1", fg="#2C3E50"
+        )
+        self.groups_listbox.pack(pady=5, padx=10)
+
+    def create_group(self):
+        group_name = self.group_name_entry.get().strip()
+        selected_indices = self.group_friends_listbox.curselection()
+        selected_friends = [self.group_friends_listbox.get(i) for i in selected_indices]
+
+        if not group_name:
+            messagebox.showwarning("Input Error", "Group name cannot be empty!")
+            return
+        if not selected_friends:
+            messagebox.showwarning("Selection Error", "Please select at least one friend!")
+            return
+        if group_name in self.groups:
+            messagebox.showwarning("Duplicate Error", "A group with this name already exists!")
+            return
+
+        self.groups[group_name] = selected_friends
+        self.groups_listbox.insert(END, f"{group_name}: {', '.join(selected_friends)}")
+        self.group_name_entry.delete(0, END)
+
+    def update_group_friends_listbox(self):
+        self.group_friends_listbox.delete(0, END)
+        for friend in self.friends:
+            self.group_friends_listbox.insert(END, friend)
+
 
 
 # Create main window
