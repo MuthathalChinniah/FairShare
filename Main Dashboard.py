@@ -64,7 +64,7 @@ class FairShare:
         self.add_expense_tab = Frame(self.content_frame, bg="#F3F4F6")
 
         # Initialize tabs
-        #self.build_friends_tab()
+        self.build_friends_tab()
         #self.build_groups_tab()
 
         # Show the default tab
@@ -85,6 +85,44 @@ class FairShare:
         self.groups_tab.pack_forget()
         self.add_expense_tab.pack(fill="both", expand=True)
         #self.add_expense_page = AddExpensePage(self.add_expense_tab, self.friends, self.groups)
+
+# FRIENDS TAB
+    def build_friends_tab(self):
+        Label(
+            self.friends_tab, text="Friend's Name:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
+        ).grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+        self.friend_name_entry = Entry(self.friends_tab, width=30, font=("Arial", 12))
+        self.friend_name_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        add_friend_button = Button(
+            self.friends_tab,
+            text="Add Friend",
+            command=self.add_friend,
+            bg="#27AE60",
+            fg="white",
+            font=("Arial", 10, "bold"),
+            activebackground="#2ECC71",
+        )
+        add_friend_button.grid(row=0, column=2, padx=10, pady=10)
+
+        self.friends_listbox = Listbox(
+            self.friends_tab, width=50, height=20, font=("Arial", 10), bg="#ECF0F1", fg="#2C3E50"
+        )
+        self.friends_listbox.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+
+    def add_friend(self):
+        friend_name = self.friend_name_entry.get().strip()
+        if friend_name:
+            if friend_name in self.friends:
+                messagebox.showwarning("Duplicate Error", "Friend already exists!")
+            else:
+                self.friends.append(friend_name)
+                self.friends_listbox.insert(END, friend_name)
+                self.friend_name_entry.delete(0, END)
+                self.update_group_friends_listbox()
+        else:
+            messagebox.showwarning("Input Error", "Friend's name cannot be empty!")
 
 
 # Create main window
