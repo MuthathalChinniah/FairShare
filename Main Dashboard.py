@@ -186,8 +186,77 @@ class FairShare:
         self.group_friends_listbox.delete(0, END)
         for friend in self.friends:
             self.group_friends_listbox.insert(END, friend)
+  # Add Expense Page
+class AddExpensePage:
+    def __init__(self, parent_frame, friends, groups):
+        self.parent_frame = parent_frame
+        self.friends = friends
+        self.groups = groups
 
+        # Clear any existing content in the parent frame
+        for widget in self.parent_frame.winfo_children():
+            widget.destroy()
 
+        # Description field
+        self.description_label = Label(self.parent_frame, text="Description", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.description_label.pack(pady=5)
+
+        self.description_entry = Entry(self.parent_frame, font=("Arial", 12), width=40)
+        self.description_entry.pack(pady=10)
+
+        # Amount field with Dollar currency symbol
+        self.amount_label = Label(self.parent_frame, text="Amount ($)", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.amount_label.pack(pady=5)
+
+        self.amount_entry = Entry(self.parent_frame, font=("Arial", 12), width=40)
+        self.amount_entry.pack(pady=10)
+
+        # Paid by options (You and someone else)
+        self.paid_by_label = Label(self.parent_frame, text="Paid by", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.paid_by_label.pack(pady=5)
+
+        self.paid_by_frame = Frame(self.parent_frame, bg="#2d2d2d")
+        self.paid_by_frame.pack(pady=10)
+
+        # Friends listbox
+        self.friend_label = Label(self.parent_frame, text="Select Friend", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.friend_label.pack(pady=5)
+
+        self.friend_listbox = Listbox(self.parent_frame, font=("Arial", 12), width=40, height=4)
+        self.friend_listbox.pack(pady=10)
+
+        # Populate friend listbox with names from the previous tab
+        for friend in self.friends:
+            self.friend_listbox.insert(END, friend)
+
+        # Groups listbox
+        self.group_label = Label(self.parent_frame, text="Select Group", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.group_label.pack(pady=5)
+
+        self.group_listbox = Listbox(self.parent_frame, font=("Arial", 12), width=40, height=4)
+        self.group_listbox.pack(pady=10)
+
+        # Populate group listbox with group names from the previous tab
+        for group in self.groups:
+            self.group_listbox.insert(END, group)
+
+        # Confirm button to submit the expense details
+        self.submit_button = Button(self.parent_frame, text="Submit", font=("Arial", 14, "bold"), bg="#32a852",
+                                    fg="white", width=15, height=2)
+        self.submit_button.pack(pady=20)
+
+        # Event handler for submit button
+        self.submit_button.config(command=self.submit_expense)
+
+    def submit_expense(self):
+        """Handle the expense submission."""
+        description = self.description_entry.get()
+        amount = self.amount_entry.get()
+
+        if description == "" or amount == "":
+            messagebox.showerror("Error", "Please fill all the fields")
+        else:
+            messagebox.showinfo("Success", f"Expense '{description}' of ${amount} added successfully!")
 
 # Create main window
 root = Tk()
