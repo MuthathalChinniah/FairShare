@@ -1,3 +1,4 @@
+from enum import member
 from tkinter import *
 from tkinter import messagebox
 import database_communication as db
@@ -12,8 +13,9 @@ class FairShare:
         self.root.config(bg="#F3F4F6")
 
         # Initialize data structures
-        self.friends = (db.get_friends(self.user_id)).keys()  # List to store friends
-        self.groups = {}  # Dictionary to store groups
+        self.friends = db.get_friends(self.user_id)  # Dict to store friends
+        status, self.groups = db.all_groups(user_id) # Dictionary to store groups
+
 
         # Main content frame
         self.content_frame = Frame(self.root, bg="#F3F4F6")
@@ -72,6 +74,7 @@ class FairShare:
         # Show the default tab
         self.show_friends_tab()
 
+
     def show_friends_tab(self):
         self.groups_tab.pack_forget()
         self.add_expense_tab.pack_forget()
@@ -119,7 +122,8 @@ class FairShare:
         status, message = db.add_friend(self.user_id, friend_mobile)
         if friend_mobile:
             if status:
-                self.friends.append(message)
+                name, id_ = message.split(" ")
+                self.friends [name] = id_
                 self.friends_listbox.insert(END, message)
                 self.friend_name_entry.delete(0, END)
                 self.update_group_friends_listbox()
@@ -166,6 +170,9 @@ class FairShare:
             self.groups_tab, width=50, height=10, font=("Arial", 10), bg="#ECF0F1", fg="#2C3E50"
         )
         self.groups_listbox.pack(pady=5, padx=10)
+        for group in self.groups:
+            grounp_mem_names = (db.get_group_members (self.groups[group])).keys()
+            self.groups_listbox.insert(END, f"{group}: {', '.join(grounp_mem_names)}")
 
     def create_group(self):
         group_name = self.group_name_entry.get().strip()
@@ -182,7 +189,11 @@ class FairShare:
             messagebox.showwarning("Duplicate Error", "A group with this name already exists!")
             return
 
-        self.groups[group_name] = selected_friends
+        friends_id_list = []
+        for friend in selected_friends:
+            friends_id_list.append (self.friends[friend])
+        group_id = db.create_group(self.user_id, group_name, friends_id_list)
+        self.groups[group_name] =group_id
         self.groups_listbox.insert(END, f"{group_name}: {', '.join(selected_friends)}")
         self.group_name_entry.delete(0, END)
 
@@ -216,24 +227,6 @@ class AddExpensePage:
         self.amount_entry = Entry(self.parent_frame, font=("Arial", 12), width=40)
         self.amount_entry.pack(pady=10)
 
-        # Paid by options (You and someone else)
-        self.paid_by_label = Label(self.parent_frame, text="Paid by", font=("Arial", 12), fg="white", bg="#2d2d2d")
-        self.paid_by_label.pack(pady=5)
-
-        self.paid_by_frame = Frame(self.parent_frame, bg="#2d2d2d")
-        self.paid_by_frame.pack(pady=10)
-
-        # Friends listbox
-        self.friend_label = Label(self.parent_frame, text="Select Friend", font=("Arial", 12), fg="white", bg="#2d2d2d")
-        self.friend_label.pack(pady=5)
-
-        self.friend_listbox = Listbox(self.parent_frame, font=("Arial", 12), width=40, height=4)
-        self.friend_listbox.pack(pady=10)
-
-        # Populate friend listbox with names from the previous tab
-        for friend in self.friends:
-            self.friend_listbox.insert(END, friend)
-
         # Groups listbox
         self.group_label = Label(self.parent_frame, text="Select Group", font=("Arial", 12), fg="white", bg="#2d2d2d")
         self.group_label.pack(pady=5)
@@ -245,6 +238,25 @@ class AddExpensePage:
         for group in self.groups:
             self.group_listbox.insert(END, group)
 
+        self.group_listbox.bind("<<ListboxSelect>>", self.update_friends_list)
+
+
+
+        # Paid by options (You and someone else)
+        self.paid_by_label = Label(self.parent_frame, text="Paid by: Select Friend", font=("Arial", 12), fg="white", bg="#2d2d2d")
+        self.paid_by_label.pack(pady=5)
+
+        self.paid_by_frame = Frame(self.parent_frame, bg="#2d2d2d")
+        self.paid_by_frame.pack(pady=10)
+
+        # Friends listbox
+        members = ["Select an Option"]
+        self.value_inside = StringVar()
+        self.value_inside.set("Select an Option")
+        self.friend_listbox = OptionMenu(self.parent_frame, self.value_inside, *members)
+        self.friend_listbox.config(width=20, font=("Arial", 12))
+        self.friend_listbox.pack(pady=10)
+
         # Confirm button to submit the expense details
         self.submit_button = Button(self.parent_frame, text="Submit", font=("Arial", 14, "bold"), bg="#32a852",
                                     fg="white", width=15, height=2)
@@ -252,16 +264,53 @@ class AddExpensePage:
 
         # Event handler for submit button
         self.submit_button.config(command=self.submit_expense)
+    def update_friends_list(self, e):
+        # Populate friend listbox
+        i = self.group_listbox.curselection()
+        if not i:
+            messagebox.showwarning("Selection Error", "Please select at least one group!")
+            return
+        selected_g = self.group_listbox.get(i)
+
+        members = db.get_group_members(self.groups[selected_g])
+
+        menu = self.friend_listbox["menu"]
+        menu.delete(0, "end")  # Clear existing options
+
+        # Add new options
+        for option in members:
+            menu.add_command(label=option, command=lambda value=option: self.value_inside.set(value))
 
     def submit_expense(self):
         """Handle the expense submission."""
         description = self.description_entry.get()
         amount = self.amount_entry.get()
 
-        if description == "" or amount == "":
-            messagebox.showerror("Error", "Please fill all the fields")
-        else:
-            messagebox.showinfo("Success", f"Expense '{description}' of ${amount} added successfully!")
+        i = self.group_listbox.curselection()
+        if not i:
+            messagebox.showwarning("Selection Error", "Please select at least one group!")
+            return
+        selected_group_name = self.group_listbox.get(i)
+        group_id = self.groups[selected_group_name]
+        members = db.get_group_members(group_id)
+
+        friend = self.value_inside.get()
+        if friend not in members:
+            messagebox.showwarning("Selection Error", "Please select at least one friend name!")
+            return
+
+
+
+        friend_id = members[friend]
+        status, msg = db.add_group_expense(friend_id, group_id, amount, description)
+        if not status:
+            messagebox.showwarning("Error", msg)
+            return
+        self.description_entry.delete(0, END)
+        self.amount_entry.delete(0, END)
+        self.value_inside.set("Select an Option")
+        self.group_listbox.selection_clear(0, END)
+
 
 def open_dashboard(user_id):
     """Opens the Dashboard window."""
