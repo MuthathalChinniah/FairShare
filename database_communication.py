@@ -359,19 +359,10 @@ def get_balances_of_group (user_id, group_id):
             for member in all_members:
                 if member != user_id:
                     member_name = (user_login_details.find_one({"_id":ObjectId(member)}))["Name"]
-                    group_bal[member_name] = {}
-
                     bal = get_balance(user_id, member, group_id)
-                    if bal > 0:
-                        group_bal [member_name]["Balance"] = bal
-                        group_bal [member_name]["Message"] = "You Owe"
-                    elif bal < 0:
-                        group_bal[member_name]["Balance"] = abs(bal)
-                        group_bal[member_name]["Message"] = "You are Owed"
-                    else:
-                        group_bal[member_name]["Balance"] = 0
-                        group_bal[member_name]["Message"] = "You are settled up"
-        return group_bal
+                    group_bal[member_name] = bal
+
+        return True, group_bal
     else:
         return False, {"Error": "Group Invalid"}
 
@@ -410,13 +401,13 @@ def overall_user_balance (user_id):
         you_owe = owed_to_others - total_payment_by_this_user
         you_are_owed = owed_by_others - total_payment_to_this_user
 
-        overall_balance = {"Total Expenditure": total_expense, "You owe": you_owe, "You are owed": you_are_owed}
+        overall_balance = {"Total Expenditure": f"{total_expense:.2f}", "You owe": f"{you_owe:.2f}", "You are owed": f"{you_are_owed:.2f}"}
         if you_owe == you_are_owed:
             overall_balance ['Message'] = "You are settled up"
         elif you_owe > you_are_owed:
-            overall_balance['Message'] = "Overall, You owe " + str (you_owe- you_are_owed)
+            overall_balance['Message'] = "Overall, You owe " + f"{(you_owe- you_are_owed):.2f}"
         else:
-            overall_balance['Message'] = "Overall, You are owed " + str (you_are_owed - you_owe)
+            overall_balance['Message'] = "Overall, You are owed " + f"{(you_are_owed - you_owe):.2f}"
         return True, overall_balance
     else:
         return False, {"Error": "User Invalid"}

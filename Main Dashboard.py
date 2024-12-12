@@ -1,7 +1,10 @@
 from enum import member
 from tkinter import *
 from tkinter import messagebox
+from tokenize import group
+
 import database_communication as db
+
 
 # FairShare Main Application
 class FairShare:
@@ -62,10 +65,23 @@ class FairShare:
         )
         self.add_expense_button.pack(side="left", expand=True, fill="both")
 
+        self.balances_btn = Button(
+            self.bottom_nav,
+            text="Balances",
+            command=self.show_balances,
+            bg="#34495E",
+            fg="white",
+            font=("Arial", 10, "bold"),
+            activebackground="#E74C3C",
+            relief="flat",
+        )
+        self.balances_btn.pack(side="left", expand=True, fill="both")
+
         # Create tabs as frames
         self.friends_tab = Frame(self.content_frame, bg="#F3F4F6")
         self.groups_tab = Frame(self.content_frame, bg="#F3F4F6")
         self.add_expense_tab = Frame(self.content_frame, bg="#F3F4F6")
+        self.balances_tab = Frame(self.content_frame, bg="#F3F4F6")
 
         # Initialize tabs
         self.build_friends_tab()
@@ -78,18 +94,29 @@ class FairShare:
     def show_friends_tab(self):
         self.groups_tab.pack_forget()
         self.add_expense_tab.pack_forget()
+        self.balances_tab.pack_forget()
         self.friends_tab.pack(fill="both", expand=True)
 
     def show_groups_tab(self):
         self.friends_tab.pack_forget()
         self.add_expense_tab.pack_forget()
+        self.balances_tab.pack_forget()
         self.groups_tab.pack(fill="both", expand=True)
 
     def show_add_expense_tab(self):
         self.friends_tab.pack_forget()
         self.groups_tab.pack_forget()
+        self.balances_tab.pack_forget()
         self.add_expense_tab.pack(fill="both", expand=True)
         self.add_expense_page = AddExpensePage(self.add_expense_tab, self.friends, self.groups)
+
+    def show_balances(self):
+        self.friends_tab.pack_forget()
+        self.groups_tab.pack_forget()
+        self.add_expense_tab.pack_forget()
+        self.balances_tab.pack(fill="both", expand=True)
+        self.balances_page = BalancePage(self.user_id, self.groups, self.balances_tab)
+
  # FRIENDS TAB
     def build_friends_tab(self):
         Label(
@@ -193,7 +220,7 @@ class FairShare:
         for friend in selected_friends:
             friends_id_list.append (self.friends[friend])
         group_id = db.create_group(self.user_id, group_name, friends_id_list)
-        self.groups[group_name] =group_id
+        self.groups[group_name] = group_id
         self.groups_listbox.insert(END, f"{group_name}: {', '.join(selected_friends)}")
         self.group_name_entry.delete(0, END)
 
@@ -202,6 +229,81 @@ class FairShare:
         for friend in self.friends:
             self.group_friends_listbox.insert(END, friend)
 
+    #Balance tab:
+
+
+
+class BalancePage:
+    def __init__(self, user_id, groups, balances_tab):
+        self.user_id = user_id
+        self.groups = groups
+        self.balances_tab = balances_tab
+        for widget in self.balances_tab.winfo_children():
+            widget.destroy()
+        status, overall_bal = db.overall_user_balance(self.user_id)
+        if status:
+            self.row = 0
+            for key_, val in overall_bal.items():
+                key_label = Label(self.balances_tab, text=f"{key_}: ", font=("Arial", 12))
+                key_label.grid(row=self.row, column=0, padx=10, pady=5, sticky="w")
+
+                value_label = Label(self.balances_tab, text=val, font=("Arial", 12))
+                value_label.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+                self.row += 1
+
+        if status:
+            groups_menu = self.groups.keys()
+            self.group_selected = StringVar()
+            self.group_selected.set("Select an Option")
+            groups_dropdown = OptionMenu(self.balances_tab, self.group_selected, *groups_menu)
+            groups_dropdown.config(width=20, font=("Arial", 12))
+            groups_dropdown.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+            self.row += 1
+            submit_button = Button(self.balances_tab, text="Get balance of this group", font=("Arial", 14, "bold"),
+                                   bg="#32a852",
+                                   fg="white", width=20, height=1)
+            submit_button.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+            self.row += 1
+
+            # Event handler for submit button
+            submit_button.config(command=self.group_balances)
+        else:
+            messagebox.showwarning("Error", "Invalid user")
+
+    def group_balances(self):
+        if self.group_selected.get() in self.groups:
+            status, group_bal_dict = db.get_balances_of_group(self.user_id, self.groups[self.group_selected.get()])
+            if status:
+                for member, balance in group_bal_dict.items():
+                    if balance > 0:
+                        msg = "You Owe " + member + " " + f"{balance:.2f}"
+                        key_label = Label(self.balances_tab, text=member, font=("Arial", 12))
+                        key_label.grid(row=self.row, column=0, padx=10, pady=5, sticky="w")
+
+                        value_label = Label(self.balances_tab, text=msg, font=("Arial", 12))
+                        value_label.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+                        self.row += 1
+                    if balance < 0:
+                        msg = member + " owes you " + f"{abs(balance):.2f}"
+                        key_label = Label(self.balances_tab, text=member, font=("Arial", 12))
+                        key_label.grid(row=self.row, column=0, padx=10, pady=5, sticky="w")
+
+                        value_label = Label(self.balances_tab, text=msg, font=("Arial", 12))
+                        value_label.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+                        self.row += 1
+                    else:
+                        msg = "You are settled up with " + member
+                        key_label = Label(self.balances_tab, text=member, font=("Arial", 12))
+                        key_label.grid(row=self.row, column=0, padx=10, pady=5, sticky="w")
+
+                        value_label = Label(self.balances_tab, text=msg, font=("Arial", 12))
+                        value_label.grid(row=self.row, column=1, padx=10, pady=5, sticky="w")
+                        self.row += 1
+            else:
+                messagebox.showwarning("Error", "Invalid user")
+        else:
+            messagebox.showwarning("Error", "Select a group")
+            return
     # Add Expense Page
 class AddExpensePage:
     def __init__(self, parent_frame, friends, groups):
@@ -310,6 +412,16 @@ class AddExpensePage:
         self.amount_entry.delete(0, END)
         self.value_inside.set("Select an Option")
         self.group_listbox.selection_clear(0, END)
+
+
+def clear_below_row(root, row_num):
+    """Clears all widgets below the specified row number."""
+    for widget in root.winfo_children():
+        # Get the row of the widget
+        _, widget_row = widget.grid_info()['row'], widget.grid_info().get('row', None)
+
+        if widget_row and int(widget_row) > row_num:
+            widget.grid_forget()  # Remove the widget from the grid
 
 
 def open_dashboard(user_id):
