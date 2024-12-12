@@ -111,7 +111,7 @@ def add_friend (user_id, mobile_number_of_friend):
             if doc['Name'] not in get_friends(user_id):
                 friend = {"user_id": user_id, "Friend": str(doc['_id'])}
                 friends.insert_one(friend)
-                return True, "Success"
+                return True, doc['Name']
             else:
                 return False, "This Person is already your friend"
         else:

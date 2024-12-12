@@ -1,16 +1,18 @@
 from tkinter import *
 from tkinter import messagebox
+import database_communication as db
 
 # FairShare Main Application
 class FairShare:
-    def __init__(self, root):
+    def __init__(self, root, user_id):
         self.root = root
+        self.user_id  = user_id
         self.root.title("FairShare App")
         self.root.geometry("800x600")
         self.root.config(bg="#F3F4F6")
 
         # Initialize data structures
-        self.friends = []  # List to store friends
+        self.friends = (db.get_friends(self.user_id)).keys()  # List to store friends
         self.groups = {}  # Dictionary to store groups
 
         # Main content frame
@@ -88,7 +90,7 @@ class FairShare:
  # FRIENDS TAB
     def build_friends_tab(self):
         Label(
-            self.friends_tab, text="Friend's Name:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
+            self.friends_tab, text="Friend's Mobile Number:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
         ).grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.friend_name_entry = Entry(self.friends_tab, width=30, font=("Arial", 12))
@@ -109,17 +111,20 @@ class FairShare:
             self.friends_tab, width=50, height=20, font=("Arial", 10), bg="#ECF0F1", fg="#2C3E50"
         )
         self.friends_listbox.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+        for friend in self.friends:
+            self.friends_listbox.insert(END, friend)
 
     def add_friend(self):
-        friend_name = self.friend_name_entry.get().strip()
-        if friend_name:
-            if friend_name in self.friends:
-                messagebox.showwarning("Duplicate Error", "Friend already exists!")
-            else:
-                self.friends.append(friend_name)
-                self.friends_listbox.insert(END, friend_name)
+        friend_mobile = self.friend_name_entry.get().strip()
+        status, message = db.add_friend(self.user_id, friend_mobile)
+        if friend_mobile:
+            if status:
+                self.friends.append(message)
+                self.friends_listbox.insert(END, message)
                 self.friend_name_entry.delete(0, END)
                 self.update_group_friends_listbox()
+            else:
+                messagebox.showwarning("Error", message)
         else:
             messagebox.showwarning("Input Error", "Friend's name cannot be empty!")
 
@@ -258,8 +263,11 @@ class AddExpensePage:
         else:
             messagebox.showinfo("Success", f"Expense '{description}' of ${amount} added successfully!")
 
-def open_dashboard():
+def open_dashboard(user_id):
     """Opens the Dashboard window."""
     root = Tk()
-    app = FairShare(root)
+    app = FairShare(root, user_id)
     root.mainloop()
+
+if __name__ == "__main__":
+    open_dashboard("675b1a94271d699e2933e39e")
