@@ -9,6 +9,9 @@ import database_communication as db
 # FairShare Main Application
 class FairShare:
     def __init__(self, root, user_id):
+        if not db.user_exists(user_id):
+            messagebox.showwarning("Error", "Invalid user!")
+            return
         self.root = root
         self.user_id  = user_id
         self.root.title("FairShare App")
@@ -431,4 +434,4 @@ def open_dashboard(user_id):
     root.mainloop()
 
 if __name__ == "__main__":
-    open_dashboard("675b1a94271d699e2933e39e")
+    open_dashboard("675b5efb73589439f508fdf0")

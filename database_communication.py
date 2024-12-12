@@ -278,7 +278,7 @@ def settle_up (group_id, paid_by, paid_to, amount):
     if user_exists(paid_by):
         if user_exists(paid_to):
             if group_exists(group_id):
-                if isinstance(amount, Number):
+                if is_number(amount):
                     amount = float(amount)
                     if amount > 0:
                         group_trans_list = get_group_transactions(group_id)
@@ -487,6 +487,7 @@ def my_tester():
     print(login("1234867891", "P@skw0rd1"))
 
     #Creating a user
+    print(create_user_db("Mahesh", "8134651909", "P@skw0rd1"))
     print(create_user_db("Jana","0154982398", "Pass@123", None))
 
     #Finding a doc with ID
@@ -556,6 +557,5 @@ def my_tester():
     # print("\n\nGet group Balance:", get_balances_of_group("67587f6ffd9b042fc40967b4", "67589bc4ba6cf3fe9ac35863"))
     # print(get_acc_details("67587f6ffd9b042fc40967b4"))
 if __name__ == "__main__":
-
     my_tester()
 
