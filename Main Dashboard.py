@@ -258,7 +258,8 @@ class AddExpensePage:
         else:
             messagebox.showinfo("Success", f"Expense '{description}' of ${amount} added successfully!")
 
-# Create main window
-root = Tk()
-app = FairShare(root)
-root.mainloop()
+def open_dashboard():
+    """Opens the Dashboard window."""
+    root = Tk()
+    app = FairShare(root)
+    root.mainloop()
