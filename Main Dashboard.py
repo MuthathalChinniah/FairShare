@@ -65,7 +65,7 @@ class FairShare:
 
         # Initialize tabs
         self.build_friends_tab()
-        #self.build_groups_tab()
+        self.build_groups_tab()
 
         # Show the default tab
         self.show_friends_tab()
@@ -84,9 +84,8 @@ class FairShare:
         self.friends_tab.pack_forget()
         self.groups_tab.pack_forget()
         self.add_expense_tab.pack(fill="both", expand=True)
-        #self.add_expense_page = AddExpensePage(self.add_expense_tab, self.friends, self.groups)
-
-# FRIENDS TAB
+        self.add_expense_page = AddExpensePage(self.add_expense_tab, self.friends, self.groups)
+ # FRIENDS TAB
     def build_friends_tab(self):
         Label(
             self.friends_tab, text="Friend's Name:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
@@ -123,7 +122,7 @@ class FairShare:
                 self.update_group_friends_listbox()
         else:
             messagebox.showwarning("Input Error", "Friend's name cannot be empty!")
-   
+
     # GROUPS TAB
     def build_groups_tab(self):
         Label(
@@ -186,7 +185,8 @@ class FairShare:
         self.group_friends_listbox.delete(0, END)
         for friend in self.friends:
             self.group_friends_listbox.insert(END, friend)
-  # Add Expense Page
+
+    # Add Expense Page
 class AddExpensePage:
     def __init__(self, parent_frame, friends, groups):
         self.parent_frame = parent_frame
