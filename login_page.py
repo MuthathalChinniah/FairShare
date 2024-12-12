@@ -1,7 +1,7 @@
 from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import messagebox
-from dashboard import open_dashboard  
+from Main Dashboard import open_dashboard  
 
 
 class LoginForm:
