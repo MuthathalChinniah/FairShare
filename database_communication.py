@@ -31,6 +31,14 @@ def mobile_exists(mobile):
     query = {"Mobile": mobile}
     return bool(user_login_details.find_one(query))
 
+def user_name_exists(name):
+    """
+    Check if username exists
+    :param name: str
+    :return: bool
+    """
+    query = {"Name": name}
+    return bool(user_login_details.find_one(query))
 
 def create_user_db (name, mobile, password, email=None):
     """
@@ -43,6 +51,9 @@ def create_user_db (name, mobile, password, email=None):
     """
     if mobile_exists(mobile):
         message = "This Mobile number number already has an account"
+        return False, message
+    if user_name_exists(name):
+        message = "This user name is taken"
         return False, message
 
 
@@ -355,12 +366,12 @@ def get_balances_of_group (user_id, group_id):
         group_bal = {}
         for doc in cursor:
             total_expense += doc["amount"]
-            all_members = (get_group_members(group_id)).values()
-            for member in all_members:
-                if member != user_id:
-                    member_name = (user_login_details.find_one({"_id":ObjectId(member)}))["Name"]
-                    bal = get_balance(user_id, member, group_id)
-                    group_bal[member_name] = bal
+        all_members = (get_group_members(group_id)).values()
+        for member in all_members:
+            if member != user_id:
+                member_name = (user_login_details.find_one({"_id":ObjectId(member)}))["Name"]
+                bal = get_balance(user_id, member, group_id)
+                group_bal[member_name] = bal
 
         return True, group_bal
     else:
@@ -506,56 +517,7 @@ def my_tester():
     cursor = group_transactions.find({})
     for doc in cursor:
         print(doc)
-    # doc = user_login_details.find_one({"_id": ObjectId(str("6750cb6f89b3bae87530d7d7"))})
-    # print(doc['Name'], "<><><><>")
-    #
-    #
-    # #Adding friend for a user
-    # print (add_friend("6750cb6f89b3bae87530d7d7", "6666666660"))
-    #
-    #
-    # #Creating group
-    # #print (create_group("6750cb6f89b3bae87530d7d7", "MyGroup2", ["67587f0aacf79394c68b9e2d", "67587f6ffd9b042fc40967b4"]))
-    # cursor = group_names.find({})
-    # for doc in cursor:
-    #     print(doc)
-    #
-    #
-    # #Getting all groups of one user
-    # print("Groups of Janu: ", all_groups("67587f0aacf79394c68b9e2d"))
-    # print("Groups of Jana: ", all_groups("67587f6ffd9b042fc40967b4"))
-    # print("Groups of Muthu: ", all_groups("6750cb6f89b3bae87530d7d7"))
-    # print("Groups of M: ", all_groups("67422a0e996fe564d452c286"))
-    #
-    # print(add_friend_to_group("67589aea0b4491008ed0ce28", "6740be446182fd93bf472312"))
-    #
-    # #Adding a group expense
-    # #print(add_group_expense ("67587f0aacf79394c68b9e2d", "67589bc4ba6cf3fe9ac35863", 60, "Groceries"))
-    # print("\n\n\n\nGroup Expenses <><><><><><><><><><><><><><><><><><>")
-    # cursor = group_transactions.find({})
-    # for doc in cursor:
-    #     print(doc)
-    #
-    # print("Expenses Split <><><><><><><><><><><><><><><><><><>")
-    # cursor = expenses_split.find({})
-    # for doc in cursor:
-    #     print(doc)
-    #
-    # print("Payments split <><><><><><><><><><><><><><><><><><>")
-    # cursor = payments.find({})
-    # for doc in cursor:
-    #     print(doc)
-    #
-    # print("Balances split <><><><><><><><><><><><><><><><><><>")
-    # cursor = balances.find({})
-    # for doc in cursor:
-    #     print(doc)
-    #
-    # print("\n\n\n", overall_user_balance("67587f0aacf79394c68b9e2d"))
-    # print(settle_up("67589bc4ba6cf3fe9ac35863", "67587f6ffd9b042fc40967b4", "67587f0aacf79394c68b9e2d", 10))
-    # print("\n\n\n", overall_user_balance("67587f6ffd9b042fc40967b4"))
-    # print("\n\nGet group Balance:", get_balances_of_group("67587f6ffd9b042fc40967b4", "67589bc4ba6cf3fe9ac35863"))
-    # print(get_acc_details("67587f6ffd9b042fc40967b4"))
+
 if __name__ == "__main__":
     my_tester()
 

@@ -32,50 +32,50 @@ class SignUpForm:
 
         # Full Name
         self.name_label = Label(self.signup_frame, text="Full Name", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
-        self.name_label.place(x=400, y=90)
+        self.name_label.place(x=325, y=90)
 
-        self.name_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#666669", font=("yu gothic ui", 12, "bold"))
-        self.name_entry.place(x=325, y=120, width=270)
+        self.name_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
+        self.name_entry.place(x=325, y=120, width=300)
 
         self.name_line = Canvas(self.signup_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.name_line.place(x=325, y=140)
 
         # Email
         self.email_label = Label(self.signup_frame, text="Email Address", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
-        self.email_label.place(x=400, y=160)
+        self.email_label.place(x=325, y=160)
 
-        self.email_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#666669", font=("yu gothic ui", 12, "bold"))
-        self.email_entry.place(x=325, y=190, width=270)
+        self.email_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
+        self.email_entry.place(x=325, y=190, width=300)
 
         self.email_line = Canvas(self.signup_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.email_line.place(x=325, y=210)
 
         # Mobile Number
         self.mobile_label = Label(self.signup_frame, text="Mobile Number", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
-        self.mobile_label.place(x=400, y=230)
+        self.mobile_label.place(x=325, y=230)
 
-        self.mobile_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#666669", font=("yu gothic ui", 12, "bold"))
-        self.mobile_entry.place(x=325, y=260, width=270)
+        self.mobile_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
+        self.mobile_entry.place(x=325, y=260, width=300)
 
         self.mobile_line = Canvas(self.signup_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.mobile_line.place(x=325, y=280)
 
         # Password
         self.password_label = Label(self.signup_frame, text="Password", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
-        self.password_label.place(x=400, y=300)
+        self.password_label.place(x=325, y=300)
 
-        self.password_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
-        self.password_entry.place(x=325, y=330, width=270)
+        self.password_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
+        self.password_entry.place(x=325, y=330, width=300)
 
         self.password_line = Canvas(self.signup_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.password_line.place(x=325, y=350)
 
         # Confirm Password
         self.confirm_password_label = Label(self.signup_frame, text="Confirm Password", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
-        self.confirm_password_label.place(x=400, y=370)
+        self.confirm_password_label.place(x=325, y=370)
 
-        self.confirm_password_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
-        self.confirm_password_entry.place(x=325, y=400, width=270)
+        self.confirm_password_entry = Entry(self.signup_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
+        self.confirm_password_entry.place(x=325, y=400, width=300)
 
         self.confirm_password_line = Canvas(self.signup_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.confirm_password_line.place(x=325, y=420)

@@ -120,7 +120,7 @@ class FairShare:
         self.balances_tab.pack(fill="both", expand=True)
         self.balances_page = BalancePage(self.user_id, self.groups, self.balances_tab)
 
- # FRIENDS TAB
+    # FRIENDS TAB
     def build_friends_tab(self):
         Label(
             self.friends_tab, text="Friend's Mobile Number:", bg="#F3F4F6", fg="#2C3E50", font=("Arial", 12)
@@ -222,7 +222,7 @@ class FairShare:
         friends_id_list = []
         for friend in selected_friends:
             friends_id_list.append (self.friends[friend])
-        group_id = db.create_group(self.user_id, group_name, friends_id_list)
+        status, group_id = db.create_group(self.user_id, group_name, friends_id_list)
         self.groups[group_name] = group_id
         self.groups_listbox.insert(END, f"{group_name}: {', '.join(selected_friends)}")
         self.group_name_entry.delete(0, END)
@@ -275,8 +275,12 @@ class BalancePage:
 
     def group_balances(self):
         if self.group_selected.get() in self.groups:
+            for widget in self.balances_tab.winfo_children():
+                widget.destroy()
+            self.row = 0
             status, group_bal_dict = db.get_balances_of_group(self.user_id, self.groups[self.group_selected.get()])
             if status:
+                print(group_bal_dict)
                 for member, balance in group_bal_dict.items():
                     if balance > 0:
                         msg = "You Owe " + member + " " + f"{balance:.2f}"
@@ -371,16 +375,12 @@ class AddExpensePage:
         self.submit_button.config(command=self.submit_expense)
     def update_friends_list(self, e):
         # Populate friend listbox
-        print("Populating friends")
         i = self.group_listbox.curselection()
-        print(i)
         if not i:
             messagebox.showwarning("Selection Error", "Please select at least one group!")
             return
         selected_g = self.group_listbox.get(i)
-        print(selected_g)
         members = db.get_group_members(self.groups[selected_g])
-        print(members)
         self.friend_listbox["menu"].delete(0, "end")  # Clear existing options
 
         # Add new options

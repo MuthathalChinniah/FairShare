@@ -35,8 +35,8 @@ class LoginForm:
         self.name_label = Label(self.ign_frame, text="Name", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
         self.name_label.place(x=325, y=110)
 
-        self.name_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#666669", font=("yu gothic ui", 12, "bold"))
-        self.name_entry.place(x=325, y=140, width=270)
+        self.name_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
+        self.name_entry.place(x=325, y=140, width=300)
 
         self.name_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.name_line.place(x=325, y=160)
@@ -45,8 +45,8 @@ class LoginForm:
         self.mobile_label = Label(self.ign_frame, text="Mobile Number", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
         self.mobile_label.place(x=325, y=190)
 
-        self.mobile_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#666669", font=("yu gothic ui", 12, "bold"))
-        self.mobile_entry.place(x=325, y=220, width=270)
+        self.mobile_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
+        self.mobile_entry.place(x=325, y=220, width=300)
 
         self.mobile_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.mobile_line.place(x=325, y=240)
@@ -55,8 +55,8 @@ class LoginForm:
         self.password_label = Label(self.ign_frame, text="Password", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
         self.password_label.place(x=325, y=270)
 
-        self.password_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="#040405", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
-        self.password_entry.place(x=325, y=300, width=270)
+        self.password_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
+        self.password_entry.place(x=325, y=300, width=300)
 
         self.password_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
         self.password_line.place(x=325, y=320)
