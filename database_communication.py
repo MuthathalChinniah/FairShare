@@ -118,12 +118,15 @@ def add_friend (user_id, mobile_number_of_friend):
     doc = user_login_details.find_one(query)
     if bool(doc):
         if user_exists(user_id):
-            if doc['Name'] not in get_friends(user_id):
-                friend = {"user_id": user_id, "Friend": str(doc['_id'])}
-                friends.insert_one(friend)
-                return True, doc['Name'] + " " + str(doc['_id'])
+            if str(doc['_id']) != user_id:
+                if doc['Name'] not in get_friends(user_id):
+                    friend = {"user_id": user_id, "Friend": str(doc['_id'])}
+                    friends.insert_one(friend)
+                    return True, doc['Name'] + " " + str(doc['_id'])
+                else:
+                    return False, "This Person is already your friend"
             else:
-                return False, "This Person is already your friend"
+                return False, "You cannot add your own number"
         else:
             return False, "Invalid User"
     else:
