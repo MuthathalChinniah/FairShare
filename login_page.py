@@ -2,7 +2,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import messagebox
 import database_communication
-from Main_Dashboard import open_dashboard
+from fare_share import FareShare  # Import the FareShare class
 
 class LoginForm:
     def __init__(self, window):
@@ -16,7 +16,7 @@ class LoginForm:
         self.bg_frame = Image.open('Logo.gif')
         photo = ImageTk.PhotoImage(self.bg_frame)
         self.bg_panel = Label(self.window, image=photo)
-        self.bg_panel.image = photo  # Keep a reference to prevent garbage collection
+        self.bg_panel.image = photo
         self.bg_panel.pack(fill='both', expand='yes')
 
         self.ign_frame = Frame(self.window, bg="#040405", width="1000", height=550)
@@ -38,18 +38,12 @@ class LoginForm:
         self.name_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
         self.name_entry.place(x=325, y=140, width=300)
 
-        self.name_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
-        self.name_line.place(x=325, y=160)
-
         # Username (Mobile Number)
         self.mobile_label = Label(self.ign_frame, text="Mobile Number", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
         self.mobile_label.place(x=325, y=190)
 
         self.mobile_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#666669", font=("yu gothic ui", 12, "bold"))
         self.mobile_entry.place(x=325, y=220, width=300)
-
-        self.mobile_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
-        self.mobile_line.place(x=325, y=240)
 
         # Password
         self.password_label = Label(self.ign_frame, text="Password", bg="#040405", font=("yu gothic ui", 15, "bold"), fg="#4f4e4d")
@@ -58,24 +52,9 @@ class LoginForm:
         self.password_entry = Entry(self.ign_frame, highlightthickness=0, relief=FLAT, bg="white", fg="#6b6a69", font=("yu gothic ui", 12, "bold"), show='*')
         self.password_entry.place(x=325, y=300, width=300)
 
-        self.password_line = Canvas(self.ign_frame, width=300, height=2.0, bg="#bdb9b1", highlightthickness=0)
-        self.password_line.place(x=325, y=320)
-
         # Login Button
         login_button = Button(self.ign_frame, text="Login", font=("yu gothic ui", 13, "bold"), width=25, bd=0, bg="#3047ff", cursor="hand2", activebackground="#3047ff", fg="white", command=self.validate_login)
         login_button.place(x=350, y=350)
-
-        # Forgot Password
-        self.forgot_button = Button(self.ign_frame, text="Forgot Password?", font=("yu gothic ui", 13, "bold underline"), fg="white", width=25, bd=0, bg="#040405", activebackground="#040405", cursor="hand2")
-        self.forgot_button.place(x=350, y=385)
-
-        # No account yet label
-        self.sign_label = Label(self.ign_frame, text="Don't have an account yet?", font=("yu gothic ui", 11, "bold"), bg="#040405", fg="white")
-        self.sign_label.place(x=280, y=450)
-
-        # Sign Up Button
-        signup_button = Button(self.ign_frame, text="Sign Up", font=("yu gothic ui", 11, "bold"), bg="#3047ff", fg="white", cursor="hand2", activebackground="#3047ff", bd=0, command=self.open_sign_up_form)
-        signup_button.place(x=490, y=450)
 
     def validate_login(self):
         """Validate Login Credentials and Navigate to Dashboard."""
@@ -94,19 +73,9 @@ class LoginForm:
     def open_dashboard(self, user_id):
         """Open the Dashboard Page."""
         self.window.destroy()  # Close the login page
-        open_dashboard(user_id)
-
-    def open_sign_up_form(self):
-        """Open the Sign-Up Form."""
-        self.window.destroy()
-        sign_up_page()
-
-def sign_up_page():
-    """Opens the Sign-Up Page."""
-    from signup_page import SignUpForm
-    window = Tk()
-    SignUpForm(window)
-    window.mainloop()
+        root = Tk()
+        FareShare(root, user_id)  # Pass user_id to FareShare class
+        root.mainloop()
 
 def page():
     """Opens the Login Page."""
