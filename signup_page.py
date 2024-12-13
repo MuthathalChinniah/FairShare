@@ -16,7 +16,7 @@ class SignUpForm:
         self.window.config(cursor='arrow')
 
         # Background Image
-        self.bg_frame = Image.open('images/Logo.gif')
+        self.bg_frame = Image.open('Logo.gif')
         photo = ImageTk.PhotoImage(self.bg_frame)
         self.bg_panel = Label(self.window, image=photo)
         self.bg_panel.image = photo  # Keep a reference to prevent garbage collection
